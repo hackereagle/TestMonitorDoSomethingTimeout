@@ -35,7 +35,7 @@ namespace TestMonitorDoSomethingTimeout.TargetModules
 			}
 			else
 			{ 
-				throw new TimeoutException($"{label} timeout!");
+				throw new TimeoutException($"{label} timeout! Over {timeout}");
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace TestMonitorDoSomethingTimeout.TargetModules
 			else
 			{ 
 				ctsForAction.Cancel();
-				throw new TimeoutException($"{label} timeout!");
+				throw new TimeoutException($"{label} timeout! Over {timeout}");
 			}
 		}
 
