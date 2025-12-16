@@ -73,6 +73,7 @@ namespace TestMonitorDoSomethingTimeout.TargetModules
 			}
 			else
 			{ 
+				ctsForAction.Cancel();
 				await allTasksWaiter;
 			}
 		}
