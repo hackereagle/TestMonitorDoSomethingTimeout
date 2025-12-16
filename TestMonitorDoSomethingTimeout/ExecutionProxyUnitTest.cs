@@ -68,6 +68,32 @@ namespace TestMonitorDoSomethingTimeout
             Assert.ThrowsAsync<Exception>(
                 async () => await ExecutionProxy.Execute(DoSomethingWithException, timeout));
         }
+
+        [Test]
+        public void TestDoTwoTask_NoTimeout()
+        {
+            // Arrange
+            var task1 = CreateDoSomethingTask(2000, "Task1");
+            var task2 = CreateDoSomethingTask(3000, "Task2");
+            var timeout = TimeSpan.FromSeconds(5);
+
+            // Act and Assert
+            Assert.DoesNotThrowAsync(
+                async () => await ExecutionProxy.Execute(new List<Task>() { task1, task2 }, timeout));
+        }
+
+        [Test]
+        public void TestDoTwoTask_Timeout()
+        {
+            // Arrange
+            var task1 = CreateDoSomethingTask(7000, "Task1");
+            var task2 = CreateDoSomethingTask(3000, "Task2");
+            var timeout = TimeSpan.FromSeconds(5);
+
+            // Act and Assert
+            Assert.ThrowsAsync<TimeoutException>(
+                async () => await ExecutionProxy.Execute(new List<Task>() { task1, task2 }, timeout));
+        }
         #endregion Test Methods
 
         #region Private Methods
@@ -97,6 +123,17 @@ namespace TestMonitorDoSomethingTimeout
             Console.WriteLine("DoSomethingWithException: Start");
             Thread.Sleep(1000);
             throw new Exception("DoSomethingWithException: Exception");
+        }
+
+        private Task CreateDoSomethingTask(int simulationDurationTimeUs, string actionName)
+        {
+            return Task.Run(() =>
+            {
+                Console.WriteLine($"{actionName}: Start");
+                Thread.Sleep(simulationDurationTimeUs);
+                Console.WriteLine($"{actionName}: End");
+            });
+
         }
         #endregion Private Methods
         #endregion Methods

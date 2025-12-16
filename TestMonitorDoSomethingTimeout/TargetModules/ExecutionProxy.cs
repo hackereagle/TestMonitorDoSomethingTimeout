@@ -57,6 +57,25 @@ namespace TestMonitorDoSomethingTimeout.TargetModules
 				throw new TimeoutException($"{label} timeout!");
 			}
 		}
+
+		public static async Task Execute(IEnumerable<Task> tasks, TimeSpan timeout, string label = "")
+		{ 
+			using var ctsForTimeoutMonitorTask = new CancellationTokenSource();
+			using var ctsForAction = new CancellationTokenSource();
+
+			var timeoutMonitor = Task.Delay(timeout, ctsForTimeoutMonitorTask.Token);
+			var allTasksWaiter = Task.WhenAll(tasks);
+
+			var completedTask = await Task.WhenAny(allTasksWaiter, timeoutMonitor);
+			if (completedTask == timeoutMonitor)
+			{
+				throw new TimeoutException($"{label} timeout! Over {timeout}!");
+			}
+			else
+			{ 
+				await allTasksWaiter;
+			}
+		}
 		#endregion Methods
 
     }
