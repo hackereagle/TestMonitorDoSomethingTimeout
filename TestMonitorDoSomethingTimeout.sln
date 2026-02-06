@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMonitorDoSomethingTimeout", "TestMonitorDoSomethingTimeout\TestMonitorDoSomethingTimeout.csproj", "{B1D5A5A9-FEC0-4222-8CFD-40D013D4A7C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestFsmActionTimeoutWithSysTimer", "TestFsmActionTimeoutWithSysTimer\TestFsmActionTimeoutWithSysTimer.csproj", "{6E5F84A6-1DB6-4C5A-A1EC-1D6993764593}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{B1D5A5A9-FEC0-4222-8CFD-40D013D4A7C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1D5A5A9-FEC0-4222-8CFD-40D013D4A7C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1D5A5A9-FEC0-4222-8CFD-40D013D4A7C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E5F84A6-1DB6-4C5A-A1EC-1D6993764593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E5F84A6-1DB6-4C5A-A1EC-1D6993764593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E5F84A6-1DB6-4C5A-A1EC-1D6993764593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E5F84A6-1DB6-4C5A-A1EC-1D6993764593}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
