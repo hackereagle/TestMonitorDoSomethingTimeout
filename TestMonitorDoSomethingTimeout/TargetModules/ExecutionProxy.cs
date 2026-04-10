@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace TestMonitorDoSomethingTimeout.TargetModules
 {
+
+    public enum CAACK
+    {
+        //CAACK 51 Carrier Action Acknowledge Code, 1 byte.
+
+        CommandPerformed, //0 = Acknowledge, command has been performed.
+        InvalidCommand, //1 = Invalid command.
+        CanNotPerformNow, //2 = Can not perform now.
+        InvalidDataOrArgument, //3 = Invalid data or argument.
+        willBePerformedByAnEvent, //4 = Acknowledge, request will be performed with completion signaled later by an event.
+        Rejected, //5 = Rejected.Invalid state.
+        CommandPerformedWithErrors, //6 = Command performed with errors.
+                                    //7-63 = Reserved.
+    }
+
     public class ExecutionProxy
     {
-		#region Constructors
-		#endregion Constructors
-
-		#region Types
-		#endregion Types
-
-		#region Fields
-		#endregion Fields
-
-		#region Properties
-		#endregion Properties
 
 		#region Methods
 		// Refer to https://stackoverflow.com/questions/4238345/asynchronously-wait-for-taskt-to-complete-with-timeout
@@ -75,6 +82,51 @@ namespace TestMonitorDoSomethingTimeout.TargetModules
 			{ 
 				ctsForAction.Cancel();
 				await allTasksWaiter;
+			}
+		}
+
+		public static async Task<CAACK> ExecuteTransaction(Func<CAACK> requestion, IObservable<int> successCallback, IObservable<int>? failCallback, TimeSpan timeout, string label = "")
+		{ 
+			using var ctsForTimeoutMonitorTask = new CancellationTokenSource();
+			using var ctsForAction = new CancellationTokenSource();
+
+			var successCallbackWaiter = successCallback.ObserveOn(Scheduler.Default).Take(1).ToTask(ctsForAction.Token);
+			Task? failCallbackWaiter = null;
+			if (failCallback != null)
+				failCallbackWaiter = failCallback.ObserveOn(Scheduler.Default).Take(1).ToTask(ctsForAction.Token);
+			var timeoutMonitor = Task.Delay(timeout, ctsForTimeoutMonitorTask.Token);
+
+			var ack = requestion();
+			//logger?.Debug($"{label} request result = {ack}");
+			if (CAACK.willBePerformedByAnEvent != ack)
+			{
+				ctsForAction.Cancel();
+				ctsForTimeoutMonitorTask.Cancel();
+				return ack;
+			}
+
+			Task completedTask;
+			if (failCallbackWaiter != null)
+				completedTask = await Task.WhenAny(successCallbackWaiter, failCallbackWaiter, timeoutMonitor);
+			else
+				completedTask = await Task.WhenAny(successCallbackWaiter, timeoutMonitor);
+
+			if (timeoutMonitor == completedTask)
+			{
+				ctsForAction.Cancel();
+				throw new TimeoutException($"{label} timeout! Over {timeout}!");
+			}
+			else
+			{
+				ctsForTimeoutMonitorTask.Cancel();
+				if (successCallbackWaiter == completedTask)
+				{
+					return CAACK.CommandPerformed;
+				}
+				else
+				{
+					return CAACK.CommandPerformedWithErrors;
+				}
 			}
 		}
 		#endregion Methods

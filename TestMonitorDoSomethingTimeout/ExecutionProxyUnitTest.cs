@@ -48,6 +48,17 @@ namespace TestMonitorDoSomethingTimeout
         }
 
         [Test]
+        public void TestDoSomethingAsync_NoTimeout_Success()
+        {
+            // Arrange
+            var timeout = TimeSpan.FromSeconds(5);
+
+            // Act and Assert
+            Assert.DoesNotThrowAsync(
+                async () => await ExecutionProxy.Execute(DoSomethingAsync, timeout));
+        }
+
+        [Test]
         public void TestRunMethodWith_Timeout()
         {
             // Arrange
@@ -67,6 +78,17 @@ namespace TestMonitorDoSomethingTimeout
             // Act and Assert
             Assert.ThrowsAsync<Exception>(
                 async () => await ExecutionProxy.Execute(DoSomethingWithException, timeout));
+        }
+
+        [Test]
+        public void TestRunMethod_NoTimeout_Success()
+        {
+            // Arrange
+            var timeout = TimeSpan.FromSeconds(5);
+
+            // Act and Assert
+            Assert.DoesNotThrowAsync(
+                async () => await ExecutionProxy.Execute(DoSomething, timeout));
         }
 
         [Test]
@@ -93,6 +115,44 @@ namespace TestMonitorDoSomethingTimeout
             // Act and Assert
             Assert.ThrowsAsync<TimeoutException>(
                 async () => await ExecutionProxy.Execute(new List<Task>() { task1, task2 }, timeout));
+        }
+
+        [Test]
+        public void TestDoTwoTask_OneThrowsException()
+        {
+            // Arrange
+            var task1 = CreateDoSomethingTask(1000, "Task1");
+            var task2 = Task.Run(() => throw new Exception("Task2 failed"));
+            var timeout = TimeSpan.FromSeconds(10);
+
+            // Act and Assert
+            Assert.ThrowsAsync<Exception>(
+                async () => await ExecutionProxy.Execute(new List<Task>() { task1, task2 }, timeout));
+        }
+
+        [Test]
+        public void TestDoEmptyTaskList_NoTimeout()
+        {
+            // Arrange
+            var timeout = TimeSpan.FromSeconds(5);
+
+            // Act and Assert
+            Assert.DoesNotThrowAsync(
+                async () => await ExecutionProxy.Execute(new List<Task>(), timeout));
+        }
+
+        [Test]
+        public void TestDoSomething_Timeout_WithLabel()
+        {
+            // Arrange
+            var timeout = TimeSpan.FromSeconds(1);
+
+            // Act
+            var ex = Assert.ThrowsAsync<TimeoutException>(
+                async () => await ExecutionProxy.Execute(DoSomethingAsync, timeout, "MyOperation"));
+
+            // Assert
+            Assert.That(ex.Message, Does.Contain("MyOperation"));
         }
         #endregion Test Methods
 
